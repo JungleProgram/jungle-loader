@@ -1,20 +1,15 @@
 <template>
   <div id="app">
-    <lottie :options="defaultOptions" :height="400" :width="400" v-on:animCreated="handleAnimation"/>
-      <div>
-          <p>Speed: x{{animationSpeed}}</p>
-          <input type="range" value="1" min="0" max="3" step="0.5"
-                  v-on:change="onSpeedChange" v-model="animationSpeed">
-      </div>
-      <button v-on:click="stop">stop</button>
-      <button v-on:click="pause">pause</button>
-      <button v-on:click="play">play</button>
+    <lottie id="loader" :options="defaultOptions" :height="84" :width="84"
+            v-on:animCreated="handleAnimation" v-bind:class="{ hidden: isHidden }" />
+    <button v-on:click="exitLoop">exit loop</button>
   </div>
 </template>
 
 <script>
   import Lottie from './lottie.vue'
   import * as animationData from './assets/logo_loading.json'
+  import * as breakpoints from './assets/breakpoints.json'
 
   export default {
     name: 'app',
@@ -24,12 +19,14 @@
     data () {
       return {
         defaultOptions: {animationData: animationData},
-        animationSpeed: 1
+        isHidden: false
       }
     },
     methods: {
       handleAnimation: function (anim) {
         this.anim = anim
+        this.anim.setSpeed(1.1)
+        this.anim.playSegments(breakpoints.loop, true)
       },
 
       stop: function () {
@@ -44,20 +41,42 @@
         this.anim.pause()
       },
 
-      onSpeedChange: function () {
-        this.anim.setSpeed(this.animationSpeed)
+      exitLoop: function () {
+        this.anim.loop = false
+        this.anim.playSegments(breakpoints.end, false)
+        this.anim.addEventListener('complete', this.fadeAway)
+      },
+
+      fadeAway: function () {
+        console.log('FADE AWAY')
+        this.isHidden = true
       }
     }
   }
 </script>
 
 <style>
+body {
+  height: 100%;
+  width: 100%;
+  background: 
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 50%;
+  /* adjust top up half the height*/
+  margin-top: -6em;
+}
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: all 1200ms cubic-bezier(0.230, 1.000, 0.320, 1.000); /* easeOutQuint */
 }
 </style>
